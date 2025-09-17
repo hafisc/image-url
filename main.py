@@ -29,6 +29,8 @@ class ImageDownloader:
     
     def download_single_image(self, artikel_id, url, sequence_num):
         """Download single image dengan error handling yang lebih baik"""
+        # Pastikan folder output ada
+        os.makedirs(self.output_dir, exist_ok=True)
         filename = f"{self.output_dir}/MNG{artikel_id}-{sequence_num}.jpg"
         
         # Skip jika file sudah ada
@@ -163,6 +165,9 @@ def download_both_excel_files():
     print("🚀 Starting dual download from both Excel files...")
     print("=" * 60)
     
+    # Create main hasil_download folder
+    os.makedirs("hasil_download", exist_ok=True)
+    
     # Download LINK IMAGE 1
     print("\n📁 LINK IMAGE 1.xlsx -> hasil_download/link_image_1/")
     downloader1 = ImageDownloader(output_dir="hasil_download/link_image_1")
@@ -171,6 +176,8 @@ def download_both_excel_files():
         data1 = downloader1.load_from_json("data_url_link_image_1.json")
         print(f"📊 LINK IMAGE 1: {len(data1)} articles, {sum(len(urls) for urls in data1.values())} URLs")
         downloader1.download_batch(data1)
+    except FileNotFoundError:
+        print("❌ File data_url_link_image_1.json not found. Please run excel_processor.py first.")
     except Exception as e:
         print(f"❌ Error downloading LINK IMAGE 1: {e}")
     
@@ -184,6 +191,8 @@ def download_both_excel_files():
         data2 = downloader2.load_from_json("data_url_link_image_2.json")
         print(f"📊 LINK IMAGE 2: {len(data2)} articles, {sum(len(urls) for urls in data2.values())} URLs")
         downloader2.download_batch(data2)
+    except FileNotFoundError:
+        print("❌ File data_url_link_image_2.json not found. Please run excel_processor.py first.")
     except Exception as e:
         print(f"❌ Error downloading LINK IMAGE 2: {e}")
     
@@ -192,6 +201,18 @@ def download_both_excel_files():
     print("📁 Check folders:")
     print("   - hasil_download/link_image_1/ (from LINK IMAGE 1.xlsx)")
     print("   - hasil_download/link_image_2/ (from LINK IMAGE 2.xlsx)")
+    
+    # Show folder contents summary
+    try:
+        if os.path.exists("hasil_download/link_image_1"):
+            count1 = len([f for f in os.listdir("hasil_download/link_image_1") if f.endswith('.jpg')])
+            print(f"   📊 Link Image 1: {count1} images downloaded")
+        
+        if os.path.exists("hasil_download/link_image_2"):
+            count2 = len([f for f in os.listdir("hasil_download/link_image_2") if f.endswith('.jpg')])
+            print(f"   📊 Link Image 2: {count2} images downloaded")
+    except Exception as e:
+        print(f"   ⚠️  Could not count files: {e}")
 
 if __name__ == "__main__":
     # Pilihan download

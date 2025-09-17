@@ -1,41 +1,119 @@
-# Image Downloader - Bulk Download dari URL ke JPG
+# Image Downloader - Excel to JPG Bulk Downloader
 
-Program ini untuk download gambar dari URL dalam jumlah besar (3000+ URLs) dan menyimpannya dengan format penamaan khusus: `MNG{artikel_id}-{sequence_number}.jpg`
+Program untuk download gambar dari file Excel yang berisi URL gambar dalam jumlah besar dan menyimpannya dengan format penamaan khusus: `MNG{artikel_id}-{sequence_number}.jpg`
 
 ## Fitur Utama
 
-✅ **Bulk Download**: Handle 3000+ URLs dengan efisien  
+✅ **Excel Processing**: Otomatis extract URL dari file Excel  
+✅ **Dual Excel Support**: Handle 2 file Excel terpisah (`LINK IMAGE 1.xlsx` & `LINK IMAGE 2.xlsx`)  
 ✅ **Smart Naming**: Format MNG{artikel_id}-{sequence_number}.jpg  
 ✅ **Resume Download**: Skip file yang sudah ada  
 ✅ **Progress Tracking**: Real-time progress dan statistik  
 ✅ **Error Handling**: Log error ke file JSON  
-✅ **Multiple Input**: Support dictionary, JSON, dan CSV  
+✅ **Organized Output**: Folder terpisah untuk setiap Excel file  
 ✅ **High Quality**: JPG quality 95% dengan optimasi  
 
-## Cara Penggunaan
+## Workflow
 
-### 1. Pakai Data Dictionary (untuk testing kecil)
-```python
+### 1. Persiapan Data Excel
+Pastikan file Excel Anda memiliki:
+- **ID Column**: `ARTIKEL`, `Ref + Color`, `REF`, `ID`, atau `PRODUCT_ID`
+- **URL Columns**: Kolom yang mengandung kata `IMAGE` atau `LINK`
+
+### 2. Extract URLs dari Excel
+```bash
+python excel_processor.py
+```
+Script ini akan:
+- Membaca `LINK IMAGE 1.xlsx` → `data_url_link_image_1.json`
+- Membaca `LINK IMAGE 2.xlsx` → `data_url_link_image_2.json`
+- Membuat `data_url_full.json` (gabungan kedua file)
+
+### 3. Download Images
+```bash
 python main.py
 ```
+Pilihan download:
+1. **Download from both Excel files** (recommended) - Folder terpisah
+2. **Download from single combined file** - Satu folder
+3. **Test with small sample data** - Testing
 
-### 2. Pakai File JSON (untuk dataset besar)
-```python
-# Edit main.py, uncomment bagian ini:
-data_from_json = downloader.load_from_json("urls_data.json")
-downloader.download_batch(data_from_json)
+## File Structure
+
+```
+Image url/
+├── LINK IMAGE 1.xlsx              # Excel file pertama
+├── LINK IMAGE 2.xlsx              # Excel file kedua
+├── excel_processor.py             # Extract URLs dari Excel
+├── main.py                        # Main downloader
+├── check_excel_structure.py       # Debug Excel structure
+├── data_url_link_image_1.json     # URLs dari Excel 1
+├── data_url_link_image_2.json     # URLs dari Excel 2
+├── data_url_full.json             # Combined URLs
+└── hasil_download/                # Output folder
+    ├── link_image_1/              # Images dari Excel 1
+    ├── link_image_2/              # Images dari Excel 2
+    └── failed_downloads.json      # Error log
 ```
 
-### 3. Pakai File CSV (untuk dataset besar)
-```python
-# Edit main.py, uncomment bagian ini:
-data_from_csv = downloader.load_from_csv("urls_data.csv")
-downloader.download_batch(data_from_csv)
+## Output Structure
+
+### Dual Download (Recommended)
+```
+hasil_download/
+├── link_image_1/
+│   ├── MNG1703127252-1.jpg
+│   ├── MNG1703127252-2.jpg
+│   └── failed_downloads.json
+└── link_image_2/
+    ├── MNG1703127999-1.jpg
+    ├── MNG1703127999-2.jpg
+    └── failed_downloads.json
 ```
 
-## Format File Input
+### Single Download
+```
+hasil_download/
+├── MNG1703127252-1.jpg
+├── MNG1703127252-2.jpg
+├── MNG1703127999-1.jpg
+└── failed_downloads.json
+```
 
-### JSON Format (`urls_data.json`):
+## Dependencies
+
+```bash
+pip install requests pillow pandas openpyxl
+```
+
+## Cara Penggunaan Detail
+
+### Step 1: Check Excel Structure (Optional)
+```bash
+python check_excel_structure.py
+```
+Untuk melihat struktur kolom Excel dan memastikan format yang benar.
+
+### Step 2: Extract URLs
+```bash
+python excel_processor.py
+```
+Output:
+- `data_url_link_image_1.json`
+- `data_url_link_image_2.json` 
+- `data_url_full.json`
+
+### Step 3: Download Images
+```bash
+python main.py
+```
+Pilih opsi sesuai kebutuhan:
+- **Opsi 1**: Download terpisah (recommended untuk organisasi yang lebih baik)
+- **Opsi 2**: Download gabungan (untuk backward compatibility)
+- **Opsi 3**: Test dengan sample data
+
+## Format JSON Output
+
 ```json
 {
   "1703127252": [
@@ -48,43 +126,25 @@ downloader.download_batch(data_from_csv)
 }
 ```
 
-### CSV Format (`urls_data.csv`):
-```csv
-artikel_id,url
-1703127252,https://shop.mango.com/assets/rcs/pics/static/T1/fotos/SE/17031272_52.jpg
-1703127252,https://shop.mango.com/assets/rcs/pics/static/T1/fotos/SE/17031272_52_R.jpg
-1703127999,https://shop.mango.com/assets/rcs/pics/static/T1/fotos/SE/17031279_99.jpg
-```
+## Tips untuk Dataset Besar
 
-## Output
-
-- **Gambar**: `hasil_download/MNG{artikel_id}-{sequence_number}.jpg`
-- **Error Log**: `hasil_download/failed_downloads.json` (jika ada yang gagal)
-
-## Contoh Output Filename
-
-Untuk artikel `1703127252` dengan 3 URL:
-- `MNG1703127252-1.jpg`
-- `MNG1703127252-2.jpg` 
-- `MNG1703127252-3.jpg`
-
-## Dependencies
-
-```bash
-pip install requests pillow
-```
-
-## Tips untuk 3000+ URLs
-
-1. **Gunakan file JSON/CSV** - Lebih efisien daripada hardcode di script
-2. **Jalankan bertahap** - Bisa pause/resume kapan saja
-3. **Monitor progress** - Ada real-time progress tracking
-4. **Cek error log** - File yang gagal akan tercatat di `failed_downloads.json`
-5. **Bandwidth** - Program sudah optimasi untuk tidak overload server
+1. **Gunakan Dual Download** - Lebih terorganisir dan mudah di-manage
+2. **Monitor Progress** - Real-time progress tracking setiap 10 file
+3. **Resume Capability** - Program otomatis skip file yang sudah ada
+4. **Error Tracking** - Semua error tercatat di `failed_downloads.json`
+5. **Bandwidth Optimization** - Timeout 30 detik, stream download
 
 ## Troubleshooting
 
+- **Excel tidak terbaca**: Pastikan format .xlsx dan ada kolom ID + URL
 - **File sudah ada**: Program otomatis skip file yang sudah didownload
 - **URL gagal**: Cek `failed_downloads.json` untuk detail error
-- **Koneksi lambat**: Timeout sudah diset 30 detik per file
-- **Memory**: Program stream download, tidak load semua ke memory
+- **Memory issue**: Program menggunakan stream download, tidak load semua ke memory
+- **Koneksi timeout**: Timeout sudah diset 30 detik per file
+
+## Advanced Usage
+
+### Manual JSON/CSV Input
+Jika tidak menggunakan Excel, bisa langsung edit `main.py` untuk load dari:
+- JSON file: `downloader.load_from_json("custom_data.json")`
+- CSV file: `downloader.load_from_csv("custom_data.csv")`
