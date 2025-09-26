@@ -18,7 +18,7 @@ def extract_urls_from_single_excel(excel_file, output_file):
             artikel_id = None
             
             # Try common ID column names
-            id_columns = ['ARTIKEL', 'Ref + Color', 'REF', 'ID', 'PRODUCT_ID']
+            id_columns = ['REF+', 'ARTIKEL', 'Ref + Color', 'REF', 'ID', 'PRODUCT_ID']
             for col in id_columns:
                 if col in df.columns:
                     artikel_id = str(row.get(col, '')).strip()
@@ -56,33 +56,31 @@ def extract_urls_from_single_excel(excel_file, output_file):
         return {}
 
 def extract_urls_from_excel():
-    """Extract all URLs from Excel files and create separate JSON files"""
+    """Extract all URLs from the new Excel file IMAGE 26.09.2025.xlsx"""
     
-    print("📖 Reading Excel files...")
+    print("📖 Reading Excel file...")
     
-    # Process each Excel file separately
-    data1 = extract_urls_from_single_excel("LINK IMAGE 1.xlsx", "data_url_link_image_1.json")
-    data2 = extract_urls_from_single_excel("LINK IMAGE 2.xlsx", "data_url_link_image_2.json")
+    # Process the new Excel file
+    excel_file = "IMAGE 26.09.2025.xlsx"
+    output_file = "data_url_image_26_09_2025.json"
     
-    # Also create combined file for backward compatibility
-    combined_data = {**data1, **data2}
+    url_data = extract_urls_from_single_excel(excel_file, output_file)
+    
+    # Also create the main data file for compatibility
     with open("data_url_full.json", 'w', encoding='utf-8') as f:
-        json.dump(combined_data, f, indent=2, ensure_ascii=False)
+        json.dump(url_data, f, indent=2, ensure_ascii=False)
     
-    total_articles = len(data1) + len(data2)
-    total_urls = sum(len(urls) for urls in data1.values()) + sum(len(urls) for urls in data2.values())
+    total_articles = len(url_data)
+    total_urls = sum(len(urls) for urls in url_data.values())
     
     print(f"\n📊 Final Results:")
-    print(f"   LINK IMAGE 1: {len(data1)} articles, {sum(len(urls) for urls in data1.values())} URLs")
-    print(f"   LINK IMAGE 2: {len(data2)} articles, {sum(len(urls) for urls in data2.values())} URLs")
-    print(f"   Combined: {total_articles} articles, {total_urls} URLs")
+    print(f"   IMAGE 26.09.2025.xlsx: {total_articles} articles, {total_urls} URLs")
     
     print(f"\n✅ Files created:")
-    print(f"   📁 data_url_link_image_1.json")
-    print(f"   📁 data_url_link_image_2.json") 
-    print(f"   📁 data_url_full.json (combined)")
+    print(f"   📁 {output_file}")
+    print(f"   📁 data_url_full.json (main data file)")
     
-    return combined_data
+    return url_data
 
 if __name__ == "__main__":
     url_data = extract_urls_from_excel()

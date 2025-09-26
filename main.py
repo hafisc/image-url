@@ -147,97 +147,91 @@ class ImageDownloader:
                     data[artikel_id].append(url)
         return data
 
-# Contoh data: id artikel + daftar url
+# Sample data untuk testing (kosong untuk menghindari download tidak sengaja)
 data = {
-    "1703127252": [
-        "https://shop.mango.com/assets/rcs/pics/static/T1/fotos/SE/17031272_52.jpg?ts=1747924512864",
-        "https://shop.mango.com/assets/rcs/pics/static/T1/fotos/SE/17031272_52_R.jpg?ts=1747924512864",
-        "https://shop.mango.com/assets/rcs/pics/static/T1/fotos/SE/17031272_52_D8.jpg?ts=1744016729173"
-    ],
-    # Untuk 3000+ URLs, lebih baik pakai file JSON atau CSV
-    # Contoh: downloader.load_from_json("data_urls.json")
-    # atau: downloader.load_from_csv("data_urls.csv")
+    # Sample data telah dihapus untuk keamanan
+    # Gunakan option 1 atau 2 untuk download dari Excel file
 }
 
-def download_both_excel_files():
-    """Download images from both Excel files to separate folders"""
+def download_from_new_excel():
+    """Download images from IMAGE 26.09.2025.xlsx"""
     
-    print("🚀 Starting dual download from both Excel files...")
+    print("🚀 Starting download from IMAGE 26.09.2025.xlsx...")
     print("=" * 60)
     
     # Create main hasil_download folder
     os.makedirs("hasil_download", exist_ok=True)
     
-    # Download LINK IMAGE 1
-    print("\n📁 LINK IMAGE 1.xlsx -> hasil_download/link_image_1/")
-    downloader1 = ImageDownloader(output_dir="hasil_download/link_image_1")
+    # Download from IMAGE 26.09.2025.xlsx
+    print("\n📁 IMAGE 26.09.2025.xlsx -> hasil_download/")
+    downloader = ImageDownloader(output_dir="hasil_download")
     
     try:
-        data1 = downloader1.load_from_json("data_url_link_image_1.json")
-        print(f"📊 LINK IMAGE 1: {len(data1)} articles, {sum(len(urls) for urls in data1.values())} URLs")
-        downloader1.download_batch(data1)
+        # Try to load from the specific JSON file first
+        try:
+            data = downloader.load_from_json("data_url_image_26_09_2025.json")
+            print(f"📊 Loaded from data_url_image_26_09_2025.json")
+        except FileNotFoundError:
+            # Fallback to the main data file
+            data = downloader.load_from_json("data_url_full.json")
+            print(f"📊 Loaded from data_url_full.json")
+        
+        print(f"📊 IMAGE 26.09.2025.xlsx: {len(data)} articles, {sum(len(urls) for urls in data.values())} URLs")
+        
+        # Ask for confirmation before starting download
+        response = input(f"\n❓ Start downloading {sum(len(urls) for urls in data.values())} images? (y/n): ")
+        if response.lower() in ['y', 'yes', 'ya']:
+            downloader.download_batch(data)
+        else:
+            print("❌ Download cancelled.")
+            return
+            
     except FileNotFoundError:
-        print("❌ File data_url_link_image_1.json not found. Please run excel_processor.py first.")
+        print("❌ Data file not found. Please run excel_processor.py first to process IMAGE 26.09.2025.xlsx")
+        return
     except Exception as e:
-        print(f"❌ Error downloading LINK IMAGE 1: {e}")
+        print(f"❌ Error downloading from IMAGE 26.09.2025.xlsx: {e}")
+        return
     
     print("\n" + "="*60)
-    
-    # Download LINK IMAGE 2
-    print("\n📁 LINK IMAGE 2.xlsx -> hasil_download/link_image_2/")
-    downloader2 = ImageDownloader(output_dir="hasil_download/link_image_2")
-    
-    try:
-        data2 = downloader2.load_from_json("data_url_link_image_2.json")
-        print(f"📊 LINK IMAGE 2: {len(data2)} articles, {sum(len(urls) for urls in data2.values())} URLs")
-        downloader2.download_batch(data2)
-    except FileNotFoundError:
-        print("❌ File data_url_link_image_2.json not found. Please run excel_processor.py first.")
-    except Exception as e:
-        print(f"❌ Error downloading LINK IMAGE 2: {e}")
-    
-    print("\n" + "="*60)
-    print("🏁 DUAL DOWNLOAD COMPLETE!")
-    print("📁 Check folders:")
-    print("   - hasil_download/link_image_1/ (from LINK IMAGE 1.xlsx)")
-    print("   - hasil_download/link_image_2/ (from LINK IMAGE 2.xlsx)")
+    print("🏁 DOWNLOAD COMPLETE!")
+    print("📁 Check folder: hasil_download/")
     
     # Show folder contents summary
     try:
-        if os.path.exists("hasil_download/link_image_1"):
-            count1 = len([f for f in os.listdir("hasil_download/link_image_1") if f.endswith('.jpg')])
-            print(f"   📊 Link Image 1: {count1} images downloaded")
-        
-        if os.path.exists("hasil_download/link_image_2"):
-            count2 = len([f for f in os.listdir("hasil_download/link_image_2") if f.endswith('.jpg')])
-            print(f"   📊 Link Image 2: {count2} images downloaded")
+        if os.path.exists("hasil_download"):
+            count = len([f for f in os.listdir("hasil_download") if f.endswith('.jpg')])
+            print(f"   📊 Images downloaded: {count}")
     except Exception as e:
         print(f"   ⚠️  Could not count files: {e}")
 
 if __name__ == "__main__":
     # Pilihan download
-    print("🔄 Image Downloader - Dual Excel File Support")
+    print("🔄 Image Downloader - IMAGE 26.09.2025.xlsx")
     print("=" * 50)
-    print("1. Download from both Excel files (recommended)")
-    print("2. Download from single combined file")
+    print("1. Download from IMAGE 26.09.2025.xlsx (recommended)")
+    print("2. Download from existing data_url_full.json")
     print("3. Test with small sample data")
     
     choice = input("\nPilih opsi (1/2/3): ").strip()
     
     if choice == "1":
-        download_both_excel_files()
+        download_from_new_excel()
     
     elif choice == "2":
-        # Original single download
+        # Original single download from existing JSON
         downloader = ImageDownloader(output_dir="hasil_download")
-        data_from_json = downloader.load_from_json("data_url_full.json")
-        print(f"📊 Dataset loaded: {len(data_from_json)} articles, {sum(len(urls) for urls in data_from_json.values())} total URLs")
-        
-        response = input("\n❓ Start downloading? (y/n): ")
-        if response.lower() in ['y', 'yes', 'ya']:
-            downloader.download_batch(data_from_json)
-        else:
-            print("❌ Download cancelled.")
+        try:
+            data_from_json = downloader.load_from_json("data_url_full.json")
+            print(f"📊 Dataset loaded: {len(data_from_json)} articles, {sum(len(urls) for urls in data_from_json.values())} total URLs")
+            
+            response = input("\n❓ Start downloading? (y/n): ")
+            if response.lower() in ['y', 'yes', 'ya']:
+                downloader.download_batch(data_from_json)
+            else:
+                print("❌ Download cancelled.")
+        except FileNotFoundError:
+            print("❌ File data_url_full.json not found. Please run excel_processor.py first.")
     
     elif choice == "3":
         # Test with sample data
